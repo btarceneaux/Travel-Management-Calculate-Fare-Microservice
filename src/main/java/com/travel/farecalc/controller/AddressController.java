@@ -1,5 +1,6 @@
 package com.travel.farecalc.controller;
 
+import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -7,12 +8,17 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 import com.travel.farecalc.bean.Address;
 import com.mashape.unirest.http.*;
 import com.travel.farecalc.dto.ResponseDto;
+import org.apache.tomcat.util.json.JSONParser;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.text.DecimalFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -50,18 +56,44 @@ public class AddressController
     }
 
     @PostMapping("/getCost")
-    public ResponseDto getDistanceBetweenAddresses(@RequestBody Address[] addressArray) throws UnirestException
+    public ResponseDto getDistanceBetweenAddresses(@RequestBody String myJsonArray) throws UnirestException
     {
         double sourceLatitude = 0,
-               sourceLongitude = 0,
-               destinationLatitude = 0,
-               destinationLongitude = 0,
-               distance = 0;
+                sourceLongitude = 0,
+                destinationLatitude = 0,
+                destinationLongitude = 0,
+                distance = 0;
 
         String apiKey = System.getenv("apiKEY");
 
-        Address sourceAddress = addressArray[0];
-        Address destinationAddress = addressArray[1];
+
+        //Let's try converting this to a json object
+        JSONObject myJsonObject = new JSONObject(myJsonArray);
+
+        System.out.println("Check myJsonObjectNow");
+
+        //Now that we finally have the values, let's set them
+        Address sourceAddress = new Address();
+        String sourceStreetAddress = myJsonObject.getString("sourceStreetAddress");
+        String sourceCity = myJsonObject.getString("sourceCity");
+        String sourceState = myJsonObject.getString("sourceState");
+        String sourceZipCode = myJsonObject.getString("sourceZipCode");
+
+        sourceAddress.setStreetAddress(sourceStreetAddress);
+        sourceAddress.setCity(sourceCity);
+        sourceAddress.setState(sourceState);
+        sourceAddress.setZipCode(sourceZipCode);
+
+        Address destinationAddress = new Address();
+        String destinationStreetAddress = myJsonObject.getString("destinationStreetAddress");
+        String destinationCity = myJsonObject.getString("destinationCity");
+        String destinationState = myJsonObject.getString("destinationState");
+        String destinationZipCode = myJsonObject.getString("destinationZipCode");
+
+        destinationAddress.setStreetAddress(destinationStreetAddress);
+        destinationAddress.setCity(destinationCity);
+        destinationAddress.setState(destinationState);
+        destinationAddress.setZipCode(destinationZipCode);
 
         //Set the coordinates of the source and destination address.
         String sourceURL = System.getenv("baseURL") + "/geocode/forward?query="
@@ -147,7 +179,12 @@ public class AddressController
         myResponse.setMessage("The fare was calculated successfully.");
         myResponse.setStatus(HttpStatus.OK.value());
         myResponse.setTimestamp(new Date());
-        myResponse.setData(cost);
+
+        DecimalFormat df = new DecimalFormat("#.##");
+
+        double finalCost =  Double.parseDouble(df.format(cost));
+
+        myResponse.setData(finalCost);
 
         return myResponse;
 
