@@ -48,7 +48,7 @@ pipeline {
         stage('Docker Deploy') {
             steps {
                 echo '----------------- Deploying docker image ----------'
-                echo $apiKey
+                echo "$apiKey"
                 sh '''
                  (if  [ $(docker ps -a | grep calculating-service | cut -d " " -f1) ]; then \
                         echo $(docker rm -f calculating-service); \
