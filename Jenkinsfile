@@ -49,7 +49,7 @@ pipeline {
                      else \
                     echo OK; \
                  fi;);
-            docker container run --restart always --name calculating-service -p 8082:8082 -d calculating-service && docker network connect travel-management-network calculating-service -e "apiKEY=prj_test_pk_d612be3a27fa5c7c1236c89ae724115d0fe8c210"
+            docker container run --restart always --name calculating-service -p 8082:8082 -d calculating-service && docker network connect travel-management-network calculating-service
             '''
             }
         }
