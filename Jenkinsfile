@@ -11,6 +11,7 @@ pipeline {
     environment
     {
         apiKey = 'prj_test_pk_d612be3a27fa5c7c1236c89ae724115d0fe8c210'
+        baseURL='https://api.radar.io/v1'
     }
 
     stages {
@@ -58,6 +59,7 @@ pipeline {
                  fi;);
             docker container run \
             --env apiKEY=$apiKey \
+            --env baseURL=$baseURL \
             --restart always \
             --name calculating-service \
             -p 8082:8082 \
