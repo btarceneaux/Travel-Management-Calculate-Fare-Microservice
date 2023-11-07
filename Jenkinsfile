@@ -7,6 +7,12 @@ pipeline {
     // Got permission denied while trying to connect to the Docker daemon socket at unix.
     // sudo usermod -a -G docker jenkins
     // restart jenkins server ->  sudo service jenkins restart
+
+    environment
+    {
+        apiKey = 'prj_test_pk_d612be3a27fa5c7c1236c89ae724115d0fe8c210'
+    }
+
     stages {
             
         stage('Maven Compile') {
@@ -42,6 +48,7 @@ pipeline {
         stage('Docker Deploy') {
             steps {
                 echo '----------------- Deploying docker image ----------'
+                echo $apiKey
                 sh '''
                  (if  [ $(docker ps -a | grep calculating-service | cut -d " " -f1) ]; then \
                         echo $(docker rm -f calculating-service); \
@@ -49,7 +56,13 @@ pipeline {
                      else \
                     echo OK; \
                  fi;);
-            docker container run --restart always --name calculating-service -p 8082:8082 -d calculating-service && docker network connect travel-management-network calculating-service
+            docker container run \
+            --env apiKEY=$apiKey \
+            --restart always \
+            --name calculating-service \
+            -p 8082:8082 \
+            -d calculating-service && \
+            docker network connect travel-management-network calculating-service
             '''
             }
         }
